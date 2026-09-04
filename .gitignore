@@ -4,3 +4,4 @@ bin/
 build/
 __Pycache__/
 .env
+node_modules/
