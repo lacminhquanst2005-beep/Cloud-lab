@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import "./App.css";
 function App() {
   // Danh sách sinh viên
   const [students, setStudents] = useState([]);
@@ -70,25 +70,92 @@ function App() {
 
     }
   };
+  // Sửa sinh viên
+const handleEdit = async (student) => {
+  const newName = prompt("Nhập họ tên mới:", student.name);
+  const newEmail = prompt("Nhập email mới:", student.email);
+
+  if (newName === null || newEmail === null) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/students/${student._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        studentId: student.studentId,
+        name: newName,
+        email: newEmail,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Cập nhật thất bại");
+    }
+
+    const updatedStudent = await response.json();
+
+    setStudents(
+      students.map((item) =>
+        item._id === student._id ? updatedStudent : item
+      )
+    );
+
+    alert("Cập nhật sinh viên thành công!");
+  } catch (error) {
+    console.error("Lỗi:", error);
+    alert("Có lỗi khi cập nhật sinh viên!");
+  }
+};
+
+
+// Xóa sinh viên
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Bạn có chắc muốn xóa sinh viên này không?"
+  );
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/students/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Xóa thất bại");
+    }
+
+    setStudents(
+      students.filter((student) => student._id !== id)
+    );
+
+    alert("Xóa sinh viên thành công!");
+  } catch (error) {
+    console.error("Lỗi:", error);
+    alert("Có lỗi khi xóa sinh viên!");
+  }
+};
 
 
   return (
-    <div>
+  <div className="container">
 
-      <h1>Quản lý sinh viên</h1>
+    <h1>Quản lý sinh viên</h1>
 
+    <div className="form-box">
 
       <h2>Thêm sinh viên</h2>
 
-
-      {/* FORM */}
-
       <form onSubmit={handleSubmit}>
 
-        <div>
-          <label>MSSV:</label>
-
-          <br />
+        <div className="form-group">
+          <label>MSSV</label>
 
           <input
             type="text"
@@ -98,14 +165,8 @@ function App() {
           />
         </div>
 
-
-        <br />
-
-
-        <div>
-          <label>Họ tên:</label>
-
-          <br />
+        <div className="form-group">
+          <label>Họ tên</label>
 
           <input
             type="text"
@@ -115,14 +176,8 @@ function App() {
           />
         </div>
 
-
-        <br />
-
-
-        <div>
-          <label>Email:</label>
-
-          <br />
+        <div className="form-group">
+          <label>Email</label>
 
           <input
             type="email"
@@ -132,43 +187,63 @@ function App() {
           />
         </div>
 
-
-        <br />
-
-
         <button type="submit">
           Thêm sinh viên
         </button>
 
       </form>
 
+    </div>
 
-      <hr />
+    <h2>Danh sách sinh viên</h2>
 
+    {students.length === 0 && (
+      <p className="no-data">
+        Chưa có dữ liệu sinh viên
+      </p>
+    )}
 
-      <h2>Danh sách sinh viên</h2>
+    <div className="student-list">
 
+    {students.map((student) => (
 
-      {students.length === 0 && (
-        <p>Chưa có dữ liệu sinh viên</p>
-      )}
+     <div className="student-card" key={student._id}>
 
+      <p>
+        <strong>MSSV:</strong> {student.studentId}
+      </p>
 
-      {students.map((student) => (
+      <p>
+        <strong>Họ tên:</strong> {student.name}
+      </p>
 
-        <div key={student._id}>
+      <p>
+        <strong>Email:</strong> {student.email}
+      </p>
 
-          <p>MSSV: {student.studentId}</p>
+      <div className="button-group">
 
-          <p>Họ tên: {student.name}</p>
+        <button
+          className="edit-button"
+          onClick={() => handleEdit(student)}
+        >
+          ✏️ Sửa
+        </button>
 
-          <p>Email: {student.email}</p>
+        <button
+          className="delete-button"
+          onClick={() => handleDelete(student._id)}
+        >
+          🗑️ Xóa
+        </button>
 
-          <hr />
+      </div>
 
-        </div>
+    </div>
 
-      ))}
+    ))}
+
+    </div>
 
     </div>
   );
