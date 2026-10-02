@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://mern-backend:5000",
+        target: "http://host.docker.internal:5000",
         changeOrigin: true,
       },
     },
