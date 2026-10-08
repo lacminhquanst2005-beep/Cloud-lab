@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 function App() {
   // Danh sách sinh viên
   const [students, setStudents] = useState([]);
@@ -9,26 +12,33 @@ function App() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-
-  // Lấy danh sách sinh viên
+  // ================================
+  // LẤY DANH SÁCH SINH VIÊN
+  // ================================
   useEffect(() => {
-    fetch("/api/students")
-      .then((response) => response.json())
+    fetch(`${API_URL}/api/students`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Không thể lấy danh sách sinh viên");
+        }
+        return res.json();
+      })
       .then((data) => {
         setStudents(data);
       })
-      .catch((error) => {
-        console.error("Lỗi:", error);
+      .catch((err) => {
+        console.error("Lỗi lấy danh sách:", err);
       });
   }, []);
 
-
-  // Câu 49: Gửi dữ liệu POST
+  // ================================
+  // THÊM SINH VIÊN
+  // ================================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/students", {
+      const response = await fetch(`${API_URL}/api/students`, {
         method: "POST",
 
         headers: {
@@ -42,208 +52,267 @@ function App() {
         }),
       });
 
-
       if (!response.ok) {
         throw new Error("Thêm sinh viên thất bại");
       }
-
 
       const data = await response.json();
 
       console.log("Sinh viên vừa thêm:", data);
 
+      // Thêm sinh viên mới vào danh sách
+      setStudents((prevStudents) => [
+        ...prevStudents,
+        data,
+      ]);
 
       alert("Thêm sinh viên thành công!");
-
 
       // Xóa dữ liệu trong Form
       setStudentId("");
       setName("");
       setEmail("");
-
-
     } catch (error) {
-
       console.error("Lỗi:", error);
-
       alert("Có lỗi khi thêm sinh viên!");
-
     }
   };
-  // Sửa sinh viên
-const handleEdit = async (student) => {
-  const newName = prompt("Nhập họ tên mới:", student.name);
-  const newEmail = prompt("Nhập email mới:", student.email);
 
-  if (newName === null || newEmail === null) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/students/${student._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        studentId: student.studentId,
-        name: newName,
-        email: newEmail,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Cập nhật thất bại");
-    }
-
-    const updatedStudent = await response.json();
-
-    setStudents(
-      students.map((item) =>
-        item._id === student._id ? updatedStudent : item
-      )
+  // ================================
+  // SỬA SINH VIÊN
+  // ================================
+  const handleEdit = async (student) => {
+    const newName = prompt(
+      "Nhập họ tên mới:",
+      student.name
     );
 
-    alert("Cập nhật sinh viên thành công!");
-  } catch (error) {
-    console.error("Lỗi:", error);
-    alert("Có lỗi khi cập nhật sinh viên!");
-  }
-};
-
-
-// Xóa sinh viên
-const handleDelete = async (id) => {
-  const confirmDelete = window.confirm(
-    "Bạn có chắc muốn xóa sinh viên này không?"
-  );
-
-  if (!confirmDelete) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/students/${id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      throw new Error("Xóa thất bại");
-    }
-
-    setStudents(
-      students.filter((student) => student._id !== id)
+    const newEmail = prompt(
+      "Nhập email mới:",
+      student.email
     );
 
-    alert("Xóa sinh viên thành công!");
-  } catch (error) {
-    console.error("Lỗi:", error);
-    alert("Có lỗi khi xóa sinh viên!");
-  }
-};
+    if (newName === null || newEmail === null) {
+      return;
+    }
 
+    try {
+      const response = await fetch(
+        `${API_URL}/api/students/${student._id}`,
+        {
+          method: "PUT",
 
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            studentId: student.studentId,
+            name: newName,
+            email: newEmail,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Cập nhật thất bại");
+      }
+
+      const updatedStudent = await response.json();
+
+      // Cập nhật lại danh sách
+      setStudents((prevStudents) =>
+        prevStudents.map((item) =>
+          item._id === student._id
+            ? updatedStudent
+            : item
+        )
+      );
+
+      alert("Cập nhật sinh viên thành công!");
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert("Có lỗi khi cập nhật sinh viên!");
+    }
+  };
+
+  // ================================
+  // XÓA SINH VIÊN
+  // ================================
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Bạn có chắc muốn xóa sinh viên này không?"
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/students/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Xóa thất bại");
+      }
+
+      // Xóa khỏi danh sách trên giao diện
+      setStudents((prevStudents) =>
+        prevStudents.filter(
+          (student) => student._id !== id
+        )
+      );
+
+      alert("Xóa sinh viên thành công!");
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert("Có lỗi khi xóa sinh viên!");
+    }
+  };
+
+  // ================================
+  // GIAO DIỆN
+  // ================================
   return (
-  <div className="container">
+    <div className="container">
 
-    <h1>Quản lý sinh viên - Docker Version 2.0</h1>
+      <h1>
+        Quản lý sinh viên - Docker Version 2.0
+      </h1>
 
-    <div className="form-box">
+      {/* ================================
+          FORM THÊM SINH VIÊN
+          ================================ */}
 
-      <h2>Thêm sinh viên</h2>
+      <div className="form-box">
 
-      <form onSubmit={handleSubmit}>
+        <h2>Thêm sinh viên</h2>
 
-        <div className="form-group">
-          <label>MSSV</label>
+        <form onSubmit={handleSubmit}>
 
-          <input
-            type="text"
-            placeholder="Nhập MSSV"
-            value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
-          />
-        </div>
+          <div className="form-group">
 
-        <div className="form-group">
-          <label>Họ tên</label>
+            <label>MSSV</label>
 
-          <input
-            type="text"
-            placeholder="Nhập họ tên"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
+            <input
+              type="text"
+              placeholder="Nhập MSSV"
+              value={studentId}
+              onChange={(e) =>
+                setStudentId(e.target.value)
+              }
+              required
+            />
 
-        <div className="form-group">
-          <label>Email</label>
+          </div>
 
-          <input
-            type="email"
-            placeholder="Nhập Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+          <div className="form-group">
 
-        <button type="submit">
-          Thêm sinh viên
-        </button>
+            <label>Họ tên</label>
 
-      </form>
+            <input
+              type="text"
+              placeholder="Nhập họ tên"
+              value={name}
+              onChange={(e) =>
+                setName(e.target.value)
+              }
+              required
+            />
 
-    </div>
+          </div>
 
-    <h2>Danh sách sinh viên</h2>
+          <div className="form-group">
 
-    {students.length === 0 && (
-      <p className="no-data">
-        Chưa có dữ liệu sinh viên
-      </p>
-    )}
+            <label>Email</label>
 
-    <div className="student-list">
+            <input
+              type="email"
+              placeholder="Nhập Email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
+              required
+            />
 
-    {students.map((student) => (
+          </div>
 
-     <div className="student-card" key={student._id}>
+          <button type="submit">
+            Thêm sinh viên
+          </button>
 
-      <p>
-        <strong>MSSV:</strong> {student.studentId}
-      </p>
-
-      <p>
-        <strong>Họ tên:</strong> {student.name}
-      </p>
-
-      <p>
-        <strong>Email:</strong> {student.email}
-      </p>
-
-      <div className="button-group">
-
-        <button
-          className="edit-button"
-          onClick={() => handleEdit(student)}
-        >
-          ✏️ Sửa
-        </button>
-
-        <button
-          className="delete-button"
-          onClick={() => handleDelete(student._id)}
-        >
-          🗑️ Xóa
-        </button>
+        </form>
 
       </div>
 
-    </div>
+      {/* ================================
+          DANH SÁCH SINH VIÊN
+          ================================ */}
 
-    ))}
+      <h2>Danh sách sinh viên</h2>
 
-    </div>
+      {students.length === 0 && (
+        <p className="no-data">
+          Chưa có dữ liệu sinh viên
+        </p>
+      )}
+
+      <div className="student-list">
+
+        {students.map((student) => (
+
+          <div
+            className="student-card"
+            key={student._id}
+          >
+
+            <p>
+              <strong>MSSV:</strong>{" "}
+              {student.studentId}
+            </p>
+
+            <p>
+              <strong>Họ tên:</strong>{" "}
+              {student.name}
+            </p>
+
+            <p>
+              <strong>Email:</strong>{" "}
+              {student.email}
+            </p>
+
+            <div className="button-group">
+
+              <button
+                className="edit-button"
+                onClick={() =>
+                  handleEdit(student)
+                }
+              >
+                ✏️ Sửa
+              </button>
+
+              <button
+                className="delete-button"
+                onClick={() =>
+                  handleDelete(student._id)
+                }
+              >
+                🗑️ Xóa
+              </button>
+
+            </div>
+
+          </div>
+
+        ))}
+
+      </div>
 
     </div>
   );

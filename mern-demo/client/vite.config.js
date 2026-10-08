@@ -1,15 +1,12 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
 
   server: {
-    proxy: {
-      "/api": {
-        target: "http://host.docker.internal:5000",
-        changeOrigin: true,
-      },
-    },
-  },
-});
+    host: '0.0.0.0',
+    port: 5173,
+    allowedHosts: ['mern-frontend-234354.onrender.com']
+  }
+})
