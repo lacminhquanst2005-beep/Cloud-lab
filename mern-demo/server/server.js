@@ -7,7 +7,6 @@ require("dotenv").config();
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
 
 app.use("/api/students", studentRoutes);
@@ -28,7 +27,13 @@ mongoose.connect(process.env.MONGODB_URI)
     });
 
 const PORT = 5000;
-
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'UP',
+    timestamp: new Date(),
+    uptime: process.uptime()
+  });
+});
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} - Auto Deploy Test`);
 });

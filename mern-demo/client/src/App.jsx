@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 function App() {
   // Danh sách sinh viên
   const [students, setStudents] = useState([]);
@@ -16,7 +14,7 @@ function App() {
   // LẤY DANH SÁCH SINH VIÊN
   // ================================
   useEffect(() => {
-    fetch(`${API_URL}/api/students`)
+    fetch("/api/students")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Không thể lấy danh sách sinh viên");
@@ -38,13 +36,11 @@ function App() {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${API_URL}/api/students`, {
+      const response = await fetch("/api/students", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           studentId: studentId,
           name: name,
@@ -87,25 +83,27 @@ function App() {
       student.name
     );
 
+    if (newName === null) {
+      return;
+    }
+
     const newEmail = prompt(
       "Nhập email mới:",
       student.email
     );
 
-    if (newName === null || newEmail === null) {
+    if (newEmail === null) {
       return;
     }
 
     try {
       const response = await fetch(
-        `${API_URL}/api/students/${student._id}`,
+        `/api/students/${student._id}`,
         {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             studentId: student.studentId,
             name: newName,
@@ -150,7 +148,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/students/${id}`,
+        `/api/students/${id}`,
         {
           method: "DELETE",
         }
@@ -179,23 +177,16 @@ function App() {
   // ================================
   return (
     <div className="container">
-
       <h1>
-        Quản lý sinh viên - Docker Version 2.0
+        Quản lý sinh viên - Docker Version 3.0
       </h1>
 
-      {/* ================================
-          FORM THÊM SINH VIÊN
-          ================================ */}
-
+      {/* FORM THÊM SINH VIÊN */}
       <div className="form-box">
-
         <h2>Thêm sinh viên</h2>
 
         <form onSubmit={handleSubmit}>
-
           <div className="form-group">
-
             <label>MSSV</label>
 
             <input
@@ -207,11 +198,9 @@ function App() {
               }
               required
             />
-
           </div>
 
           <div className="form-group">
-
             <label>Họ tên</label>
 
             <input
@@ -223,11 +212,9 @@ function App() {
               }
               required
             />
-
           </div>
 
           <div className="form-group">
-
             <label>Email</label>
 
             <input
@@ -239,21 +226,15 @@ function App() {
               }
               required
             />
-
           </div>
 
           <button type="submit">
             Thêm sinh viên
           </button>
-
         </form>
-
       </div>
 
-      {/* ================================
-          DANH SÁCH SINH VIÊN
-          ================================ */}
-
+      {/* DANH SÁCH SINH VIÊN */}
       <h2>Danh sách sinh viên</h2>
 
       {students.length === 0 && (
@@ -263,14 +244,11 @@ function App() {
       )}
 
       <div className="student-list">
-
         {students.map((student) => (
-
           <div
             className="student-card"
             key={student._id}
           >
-
             <p>
               <strong>MSSV:</strong>{" "}
               {student.studentId}
@@ -287,12 +265,9 @@ function App() {
             </p>
 
             <div className="button-group">
-
               <button
                 className="edit-button"
-                onClick={() =>
-                  handleEdit(student)
-                }
+                onClick={() => handleEdit(student)}
               >
                 ✏️ Sửa
               </button>
@@ -305,15 +280,10 @@ function App() {
               >
                 🗑️ Xóa
               </button>
-
             </div>
-
           </div>
-
         ))}
-
       </div>
-
     </div>
   );
 }
